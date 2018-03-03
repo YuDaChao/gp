@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 
 import Boy from './Boy';
-import ListViewText from './ListViewText'
+import ListViewText from './ListViewText';
+import FetchTest from './FetchTest';
 
 export default class gp extends Component {
   constructor(props) {
@@ -23,7 +24,7 @@ export default class gp extends Component {
 
   render() {
     return (
-      <ListViewText/>
+      <FetchTest/>
     );
   }
 }
