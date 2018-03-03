@@ -8,10 +8,10 @@ import React, { Component } from 'react';
 import {
   AppRegistry,
   StyleSheet,
-  Navigator,
 } from 'react-native';
 
 import Boy from './Boy';
+import ListViewText from './ListViewText'
 
 export default class gp extends Component {
   constructor(props) {
@@ -23,15 +23,7 @@ export default class gp extends Component {
 
   render() {
     return (
-      <Navigator
-        initialRoute = {{
-          component: Boy
-        }}
-        renderScene = {(route, navigator) => {
-          const Component = route.component;
-          return <Component navigator={navigator} {...route.params} />
-        }}
-      />
+      <ListViewText/>
     );
   }
 }
