@@ -13,18 +13,25 @@ export default class RepositoryCell extends Component {
     return(
       <TouchableOpacity>
         <View style={styles.container}>
-          <Text style={styles.title}>{data.full_name}</Text>
-          <Text style={styles.description}>{data.description}</Text>
-          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+          <View style={styles.top}>
             <View style={styles.author}>
-              <Text>Author: </Text>
               <Image
                 style={styles.image}
                 source={{uri: data.owner.avatar_url}}
               />
+              <Text>{data.owner.login}</Text>
             </View>
+            <View>
+              <Text style={styles.title}>{data.name}</Text>
+            </View>
+          </View>
+          <Text style={styles.description}>{data.description}</Text>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
             <View style={styles.author}>
-              <Text>Starts: </Text>
+              <Image
+                style={styles.favorite}
+                source={require('../../res/images/ic_favorite.png')}
+              />
               <Text>{data.stargazers_count}</Text>
             </View>
             <Image
@@ -54,21 +61,34 @@ const styles = StyleSheet.create({
     elevation: 2
   },
   image: {
-    width: 22,
-    height: 22
+    width: 18,
+    height: 18,
+    borderRadius: 5,
+    marginRight: 8
+  },
+  favorite: {
+    width: 18,
+    height: 18,
+    marginRight: 4
   },
   author: {
     flexDirection: 'row',
     alignItems: 'center'
   },
+  top: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center"
+  },
   title: {
     fontSize: 16,
     marginBottom: 3,
-    color: '#212121'
+    color: '#90979c'
   },
   description: {
     fontSize: 14,
-    marginBottom: 3,
-    color: '#757575'
+    marginTop: 5,
+    marginBottom: 8,
+    color: '#333'
   }
 });
