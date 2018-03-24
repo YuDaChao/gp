@@ -1,10 +1,15 @@
-import React, { Component } from 'react';
+import React from 'react';
 import {
   Image,
   TouchableOpacity
 } from 'react-native';
 
 export default class ViewUtils {
+  /**
+   * 返回一个返回按钮
+   * @param callback
+   * @returns {*}
+   */
   static getLeftButton(callback) {
     return (
       <TouchableOpacity
