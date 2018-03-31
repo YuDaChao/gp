@@ -5,7 +5,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
-  Image
+  Image,
+  Alert,
 } from 'react-native';
 import CheckBox from 'react-native-check-box';
 
@@ -19,6 +20,7 @@ export default class MyPage extends Component {
     super(props);
     this.languageDao = new LanguageDao(FLAG_LANGUAGE.flag_key);
     this.chengeValues = [];
+    this.isRemoveKey = this.props.isRemoveKey;
     this.state = {
       tags: []
     }
@@ -27,12 +29,30 @@ export default class MyPage extends Component {
     this.loadData()
   }
   onSave() {
+    const { tags } = this.state;
     if (this.chengeValues.length === 0) {
       this.props.navigator.pop();
       return
     }
-    this.languageDao.save(this.state.tags);
+    this.chengeValues.map(tag => {
+      ArrayUtil.remove(tags, tag)
+    });
+    this.languageDao.save(tags);
     this.props.navigator.pop()
+  }
+  onBack() {
+    if (this.chengeValues.length === 0) {
+      this.props.navigator.pop();
+      return
+    }
+    Alert.alert(
+      '提示',
+      '要保存修改吗?',
+      [
+        {text: 'Cancel', onPress: () => { this.props.navigator.pop()}},
+        {text: 'Ok', onPress: () => { this.onSave()}},
+      ]
+    )
   }
   loadData() {
     this.languageDao.fetch()
@@ -40,8 +60,11 @@ export default class MyPage extends Component {
       .catch(error => console.log(error))
   }
   onClick(data) {
-    data.checked = !data.checked;
+    if (!this.isRemoveKey) {
+      data.checked = !data.checked;
+    }
     ArrayUtil.updateArray(this.chengeValues, data)
+
   }
   renderTags() {
     const { tags } = this.state;
@@ -73,32 +96,40 @@ export default class MyPage extends Component {
   }
 
   renderCheckBox(data) {
-    return (
-      data && <CheckBox
-        style={styles.checkBox}
-        leftText={data.name}
-        onClick={() => this.onClick(data)}
-        isChecked={data.checked}
-        checkedImage={<Image style={{tintColor: '#6495ED'}} source={require('./images/ic_check_box.png')}/>}
-        unCheckedImage={<Image style={{tintColor: '#6495ED'}} source={require('./images/ic_check_box_outline_blank.png')} />}
-      />
-    )
+    if (data) {
+      const leftText = data.name;
+      const isChecked = this.isRemoveKey ? false : data.checked;
+      return (
+        <CheckBox
+          style={styles.checkBox}
+          leftText={leftText}
+          onClick={() => this.onClick(data)}
+          isChecked={isChecked}
+          checkedImage={<Image style={{tintColor: '#6495ED'}} source={require('./images/ic_check_box.png')}/>}
+          unCheckedImage={<Image style={{tintColor: '#6495ED'}} source={require('./images/ic_check_box_outline_blank.png')} />}
+        />
+      )
+    }
+    return null
   }
   render() {
+    const title = this.isRemoveKey ? '标签移除' : '自定义标签';
+    const rightButton = this.isRemoveKey ? '移除' : '保存';
     const RightButton = (
       <TouchableOpacity
         onPress={() => this.onSave()}
       >
         <View style={{margin: 10}}>
-          <Text style={styles.save}>save</Text>
+          <Text style={styles.save}>{rightButton}</Text>
         </View>
       </TouchableOpacity>
-    )
+    );
+
     return(
       <View style={styles.container}>
         <NavigationBar
-          title="自定义标签"
-          leftButton={ViewUtils.getLeftButton(() => this.onSave())}
+          title={title}
+          leftButton={ViewUtils.getLeftButton(() => this.onBack())}
           rightButton={RightButton}
         />
         <ScrollView>
@@ -114,7 +145,7 @@ const styles = StyleSheet.create({
     flex: 1
   },
   save: {
-    fontSize: 18,
+    fontSize: 20,
     color: 'white'
   },
   checkBox: {

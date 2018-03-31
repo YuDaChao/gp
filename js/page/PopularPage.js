@@ -3,7 +3,8 @@ import {
   View,
   RefreshControl,
   ListView,
-  StyleSheet
+  StyleSheet,
+  DeviceEventEmitter
 } from 'react-native';
 import ScrollableTabView, { ScrollableTabBar } from 'react-native-scrollable-tab-view';
 
@@ -82,8 +83,30 @@ class PopularTab extends Component {
     });
     const url = this.getUrl();
     const { dataSource } = this.state;
-    this.dataRepository.fetchNetRepository(url)
-      .then(data => this.setState({dataSource: dataSource.cloneWithRows(data.items), isLoading: false}))
+    this.dataRepository.fetchRepository(url)
+      .then(data => {
+        const items = data && data.items ? data.items : (data || []);
+        this.setState({
+          dataSource: dataSource.cloneWithRows(items),
+          isLoading: false
+        });
+        if (data && data.update_date && !this.dataRepository.checkDate(data.update_date)) {
+          DeviceEventEmitter.emit('showToast', '数据过时');
+          return this.dataRepository.fetchNetRepository(url)
+        } else {
+          DeviceEventEmitter.emit('showToast', '显示缓存数据');
+        }
+      })
+      .then(items => {
+        if (!items) {
+          return
+        }
+        this.setState({
+          dataSource: dataSource.cloneWithRows(items),
+          isLoading: false
+        });
+        DeviceEventEmitter.emit('showToast', '显示网络数据')
+      })
       .catch(err => this.setState({data: JSON.stringify(err), isLoading: false}))
 
   }

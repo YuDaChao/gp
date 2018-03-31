@@ -6,6 +6,7 @@ import {
 
 import NavigationBar from '../../common/NavigationBar';
 import CustomerTag from './CustomerTag';
+import SorTags from './SortTags';
 
 export default class MyPage extends Component {
   render() {
@@ -22,6 +23,26 @@ export default class MyPage extends Component {
             })
           }}
         >自动移标签</Text>
+        <Text
+          onPress={() => {
+            this.props.navigator.push({
+              component: SorTags,
+              params: {...this.props}
+            })
+          }}
+        >
+          标签排序
+        </Text>
+        <Text
+          onPress={() => {
+            this.props.navigator.push({
+              component: CustomerTag,
+              params: {...this.props, isRemoveKey: true}
+            })
+          }}
+        >
+          标签移除
+        </Text>
       </View>
     )
   }
