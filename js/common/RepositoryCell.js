@@ -9,9 +9,11 @@ import {
 
 export default class RepositoryCell extends Component {
   render() {
-    const { data } = this.props;
+    const { data, onSelect } = this.props;
     return(
-      <TouchableOpacity>
+      <TouchableOpacity
+        onPress={onSelect}
+      >
         <View style={styles.container}>
           <View style={styles.top}>
             <View style={styles.author}>
@@ -21,9 +23,9 @@ export default class RepositoryCell extends Component {
               />
               <Text>{data.owner.login}</Text>
             </View>
-            <View>
+            {/*<View>
               <Text style={styles.title}>{data.name}</Text>
-            </View>
+            </View>*/}
           </View>
           <Text style={styles.description}>{data.description}</Text>
           <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
@@ -36,7 +38,7 @@ export default class RepositoryCell extends Component {
             </View>
             <Image
               style={styles.image}
-              source={require('../../res/images/ic_star.png')}
+              source={require('../../res/images/ic_unstar_navbar.png')}
             />
           </View>
         </View>
@@ -51,12 +53,12 @@ const styles = StyleSheet.create({
     marginRight: 5,
     padding: 10,
     borderWidth: 0.5,
-    marginVertical: 3,
+    marginVertical: 5,
     borderRadius: 2,
     borderColor: '#dddddd',
-    shadowColor: 'gray',
+    shadowColor: '#fafbfc',
     shadowOffset: {width: 0.0, height: 0.5},
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.3,
     shadowRadius: 1,
     elevation: 2
   },
@@ -89,6 +91,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 5,
     marginBottom: 8,
-    color: '#333'
+    color: '#586069'
   }
 });

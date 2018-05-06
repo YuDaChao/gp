@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 
 import NavigationBar from '../../common/NavigationBar';
+import { FLAG_LANGUAGE } from '../../expand/dao/LanguageDao'
 import CustomerTag from './CustomerTag';
 import SorTags from './SortTags';
 
@@ -19,19 +20,49 @@ export default class MyPage extends Component {
           onPress={() => {
             this.props.navigator.push({
               component: CustomerTag,
-              params: {...this.props}
+              params: {
+                ...this.props,
+                flag: FLAG_LANGUAGE.flag_key
+              }
             })
           }}
-        >自动移标签</Text>
+        >自定义标签</Text>
+        <Text
+          onPress={() => {
+            this.props.navigator.push({
+              component: CustomerTag,
+              params: {
+                ...this.props,
+                flag: FLAG_LANGUAGE.flag_language
+              }
+            })
+          }}
+        >自定义语言</Text>
         <Text
           onPress={() => {
             this.props.navigator.push({
               component: SorTags,
-              params: {...this.props}
+              params: {
+                ...this.props,
+                flag: FLAG_LANGUAGE.flag_key
+              }
             })
           }}
         >
           标签排序
+        </Text>
+        <Text
+          onPress={() => {
+            this.props.navigator.push({
+              component: SorTags,
+              params: {
+                ...this.props,
+                flag: FLAG_LANGUAGE.flag_language
+              }
+            })
+          }}
+        >
+          语言排序
         </Text>
         <Text
           onPress={() => {

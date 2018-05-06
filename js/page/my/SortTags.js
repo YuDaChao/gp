@@ -27,7 +27,7 @@ export default class SortTags extends React.Component {
   }
 
   componentDidMount() {
-    this.languageDao = new LanguageDao(FLAG_LANGUAGE.flag_key);
+    this.languageDao = new LanguageDao(this.props.flag);
     this.loadTags()
   }
 
@@ -39,27 +39,28 @@ export default class SortTags extends React.Component {
 
   onBack() {
     const { checkedTags } = this.state;
+    console.log(this.originalCheckArray, checkedTags, ArrayUtil.isEqual(this.originalCheckArray, checkedTags))
     if (!ArrayUtil.isEqual(this.originalCheckArray, checkedTags)) {
+      Alert.alert(
+        '提示',
+        '要保存修改吗?',
+        [
+          {text: 'Cancel', onPress: () => { this.props.navigator.pop()}},
+          {text: 'Ok', onPress: () => { this.onSave(true)}},
+        ]
+      )
+    } else {
       this.props.navigator.pop();
-      return
     }
-    Alert.alert(
-      '提示',
-      '要保存修改吗?',
-      [
-        {text: 'Cancel', onPress: () => { this.props.navigator.pop()}},
-        {text: 'Ok', onPress: () => { this.onSave(true)}},
-      ]
-    )
-
   }
   onSave(isChecked) {
     const { checkedTags } = this.state;
-    if (!isChecked && !ArrayUtil.isEqual(this.originalCheckArray, checkedTags)) {
+    if (!isChecked && ArrayUtil.isEqual(this.originalCheckArray, checkedTags)) {
       this.props.navigator.pop();
       return
     }
     this.getSortReault();
+    console.log('save:  ', this.sortResultArray)
     this.languageDao.save(this.sortResultArray);
     this.props.navigator.pop()
   }
@@ -75,6 +76,7 @@ export default class SortTags extends React.Component {
 
   // 得到用户订阅的标签
   getUserTags(tags) {
+    console.log(tags)
     this.dataArray = tags;
     let checkedTags = [];
     this.dataArray.map(tag => {
@@ -101,6 +103,7 @@ export default class SortTags extends React.Component {
     );
     const { checkedTags } = this.state;
     const keys = Object.keys(checkedTags);
+    console.log(checkedTags)
 
     return(
       <View style={styles.container}>

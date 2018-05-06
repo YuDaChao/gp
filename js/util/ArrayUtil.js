@@ -27,10 +27,14 @@ export default class ArrayUtil {
   static isEqual(arr1, arr2) {
     if (!(arr1 && arr2)) { return false }
     if (arr1.length !== arr2.length) { return false }
+    let flag = true;
     arr1.map((a, i) => {
-      if (a !== arr2[i]) { return false }
+      if (a.name !== arr2[i].name) {
+        flag = false;
+        return false
+      }
     });
-    return true
+    return flag
   }
 
   static remove(arr, item) {

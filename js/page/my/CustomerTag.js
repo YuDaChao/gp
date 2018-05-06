@@ -18,7 +18,7 @@ import LanguageDao, { FLAG_LANGUAGE } from '../../expand/dao/LanguageDao';
 export default class MyPage extends Component {
   constructor(props) {
     super(props);
-    this.languageDao = new LanguageDao(FLAG_LANGUAGE.flag_key);
+    this.languageDao = new LanguageDao(this.props.flag);
     this.chengeValues = [];
     this.isRemoveKey = this.props.isRemoveKey;
     this.state = {
@@ -34,9 +34,11 @@ export default class MyPage extends Component {
       this.props.navigator.pop();
       return
     }
-    this.chengeValues.map(tag => {
-      ArrayUtil.remove(tags, tag)
-    });
+    if (this.isRemoveKey) {
+      this.chengeValues.map(tag => {
+        ArrayUtil.remove(tags, tag)
+      });
+    }
     this.languageDao.save(tags);
     this.props.navigator.pop()
   }
@@ -113,7 +115,8 @@ export default class MyPage extends Component {
     return null
   }
   render() {
-    const title = this.isRemoveKey ? '标签移除' : '自定义标签';
+    let title = this.isRemoveKey ? '标签移除' : '自定义标签';
+    title = this.props.flag === FLAG_LANGUAGE.flag_language ? '自定义语言' : title;
     const rightButton = this.isRemoveKey ? '移除' : '保存';
     const RightButton = (
       <TouchableOpacity
