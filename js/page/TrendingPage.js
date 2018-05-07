@@ -158,10 +158,10 @@ class TrendingTab extends Component {
           isLoading: false
         });
         if (data && data.update_date && !this.dataRepository.checkDate(data.update_date)) {
-          DeviceEventEmitter.emit('showToast', '数据过时');
+          // DeviceEventEmitter.emit('showToast', '数据过时');
           return this.dataRepository.fetchNetRepository(url)
         } else {
-          DeviceEventEmitter.emit('showToast', '显示缓存数据');
+          // DeviceEventEmitter.emit('showToast', '显示缓存数据');
         }
       })
       .then(items => {
@@ -172,7 +172,7 @@ class TrendingTab extends Component {
           dataSource: dataSource.cloneWithRows(items),
           isLoading: false
         });
-        DeviceEventEmitter.emit('showToast', '显示网络数据')
+        // DeviceEventEmitter.emit('showToast', '显示网络数据')
       })
       .catch(err => this.setState({data: JSON.stringify(err), isLoading: false}))
 

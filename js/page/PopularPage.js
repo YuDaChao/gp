@@ -3,8 +3,7 @@ import {
   View,
   RefreshControl,
   ListView,
-  StyleSheet,
-  DeviceEventEmitter
+  StyleSheet
 } from 'react-native';
 import ScrollableTabView, { ScrollableTabBar } from 'react-native-scrollable-tab-view';
 
@@ -14,19 +13,21 @@ import RepositoryCell from '../common/RepositoryCell';
 import RepositoryDetail from './RepositoryDetail';
 
 import LanguageDao, { FLAG_LANGUAGE } from '../expand/dao/LanguageDao';
+import FavoriteDao from '../expand/dao/FavoriteDao'
 
 const URL = 'https://api.github.com/search/repositories?q=';
 const QUERY_STR = '&sort=stars';
+const favoriteDao = new FavoriteDao(STORAGE.Popular);
 export default class PopularPage extends Component {
   constructor(props) {
     super(props);
     this.languageDao = new LanguageDao(FLAG_LANGUAGE.flag_key);
     this.state = {
-      tags: []
+      tags: [],
     }
   }
   componentDidMount() {
-    this.loadData()
+    this.loadData();
   }
   loadData() {
     this.languageDao.fetch()
@@ -71,13 +72,33 @@ class PopularTab extends Component {
     this.dataRepository = new DataRepository(STORAGE.Popular);
     this.state = {
       data: '',
+      favoriteItem: {},
       dataSource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
       isLoading: false
     }
   }
   componentDidMount() {
-    this.onLoad()
+    this.onLoad();
+    this.loadFavoriteKey()
   }
+
+  // 更新收藏状态
+  flushFavoriteState = (favoriteItem) => {
+    const { dataSource } = this.state;
+    let modules = [];
+    let items = this.items;
+    items.forEach(item => {
+      modules.push({
+        data: item,
+        isFavorite: favoriteItem[item.id]
+      })
+    });
+    this.setState({
+      dataSource: dataSource.cloneWithRows(modules),
+      isLoading: false
+    });
+  }
+
   onLoad() {
     this.setState({
       isLoading: true
@@ -86,30 +107,30 @@ class PopularTab extends Component {
     const { dataSource } = this.state;
     this.dataRepository.fetchRepository(url)
       .then(data => {
-        const items = data && data.items ? data.items : (data || []);
-        this.setState({
-          dataSource: dataSource.cloneWithRows(items),
-          isLoading: false
-        });
+        this.items = data && data.items ? data.items : (data || []);
+        this.loadFavoriteKey();
         if (data && data.update_date && !this.dataRepository.checkDate(data.update_date)) {
-          DeviceEventEmitter.emit('showToast', '数据过时');
           return this.dataRepository.fetchNetRepository(url)
         } else {
-          DeviceEventEmitter.emit('showToast', '显示缓存数据');
         }
       })
       .then(items => {
         if (!items) {
           return
         }
-        this.setState({
-          dataSource: dataSource.cloneWithRows(items),
-          isLoading: false
-        });
-        DeviceEventEmitter.emit('showToast', '显示网络数据')
+        this.loadFavoriteKey();
       })
       .catch(err => this.setState({data: JSON.stringify(err), isLoading: false}))
 
+  }
+
+  loadFavoriteKey = () => {
+    favoriteDao.getFaoriteKeyObj()
+      .then(result => {
+        this.setState({ favoriteItem: result || {}});
+        this.flushFavoriteState(result || {})
+      })
+      .catch(() => this.flushFavoriteState({}))
   }
   getUrl() {
     return URL + this.props.tabLabel + QUERY_STR
@@ -123,11 +144,16 @@ class PopularTab extends Component {
       }
     });
   }
-  renderRow(data) {
+  handleFavoriteItem = (id) => {
+    favoriteDao.updateFavoriteKeys(id, this.loadFavoriteKey);
+  }
+  renderRow = (module) => {
     return(
       <RepositoryCell
-        data={data}
-        onSelect={() => this.onSelect(data) }
+        data={module.data}
+        isFavorite={module.isFavorite}
+        handleFavoriteItem={this.handleFavoriteItem}
+        onSelect={() => this.onSelect(module.data) }
       />
     )
   }
@@ -136,7 +162,7 @@ class PopularTab extends Component {
       <View style={styles.container}>
         <ListView
           dataSource={this.state.dataSource}
-          renderRow={(data) => this.renderRow(data)}
+          renderRow={(module) => this.renderRow(module)}
           refreshControl={
             <RefreshControl
               refreshing={this.state.isLoading}
