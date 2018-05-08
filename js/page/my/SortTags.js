@@ -76,7 +76,6 @@ export default class SortTags extends React.Component {
 
   // 得到用户订阅的标签
   getUserTags(tags) {
-    console.log(tags)
     this.dataArray = tags;
     let checkedTags = [];
     this.dataArray.map(tag => {
@@ -103,12 +102,11 @@ export default class SortTags extends React.Component {
     );
     const { checkedTags } = this.state;
     const keys = Object.keys(checkedTags);
-    console.log(checkedTags)
-
+    const title = this.props.flag === FLAG_LANGUAGE.flag_language ? '语言排序' : '标签排序';
     return(
       <View style={styles.container}>
         <NavigationBar
-          title="我的"
+          title={title}
           leftButton={ViewUtils.getLeftButton(() => this.onBack())}
           rightButton={RightButton}
         />
