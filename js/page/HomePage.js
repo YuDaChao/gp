@@ -10,6 +10,7 @@ import TabNavigator from 'react-native-tab-navigator';
 import PopularPage from './PopularPage';
 import MyPage from './my/MyPage';
 import TrendingPage from './TrendingPage'
+import FavoritePage from './FavoritePage'
 
 export default class HomePage extends Component {
   constructor(props) {
@@ -58,7 +59,7 @@ export default class HomePage extends Component {
             renderIcon={() => <Image style={styles.image} source={require('../../res/images/ic_favorite.png')}/>}
             renderSelectedIcon={() =><Image style={[styles.image,{tintColor:'#0366d6'}]} source={require('../../res/images/ic_favorite.png')}/>}
             onPress={() => this.setState({selectedTab: 'tb_favorite'})}>
-            <View style={{backgroundColor: 'green',flex:1}}></View>
+            <FavoritePage {...this.props} />
           </TabNavigator.Item>
           <TabNavigator.Item
             selected={this.state.selectedTab === 'tb_my'}

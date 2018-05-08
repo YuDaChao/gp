@@ -16,11 +16,11 @@ export default class RepositoryCell extends Component {
     return !isFavorite
       ? require('../../res/images/ic_unstar_transparent.png')
       : require('../../res/images/ic_star.png')
-  }
+  };
 
-  onClickFavorite = (id) => {
-    this.props.handleFavoriteItem(id)
-  }
+  onClickFavorite = (id, data) => {
+    this.props.handleFavoriteItem(id, data)
+  };
 
   render() {
     const { data, onSelect, isFavorite } = this.props;
@@ -51,7 +51,7 @@ export default class RepositoryCell extends Component {
               <Text>{data.stargazers_count}</Text>
             </View>
             <TouchableOpacity
-              onPress={() => this.onClickFavorite(data.id)}
+              onPress={() => this.onClickFavorite(data.id, data)}
             >
               <Image
                 style={[styles.image, {tintColor: '#2196F3'}]}

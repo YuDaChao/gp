@@ -10,9 +10,23 @@ import {
 import HTMLView from 'react-native-htmlview'
 
 export default class TrendingCell extends Component {
+  constructor(props) {
+    super(props);
+  }
+
+  getFavoriteIcon = (isFavorite) => {
+    return !isFavorite
+      ? require('../../res/images/ic_unstar_transparent.png')
+      : require('../../res/images/ic_star.png')
+  };
+
+  onClickFavorite = (id, data) => {
+    this.props.handleFavoriteItem(id, data)
+  };
+
   render() {
-    const { data, onSelect } = this.props;
-    const desc = `<p>${data.description}</p>`
+    const { data, onSelect, isFavorite } = this.props;
+    const desc = `<p>${data.description}</p>`;
     return(
       <TouchableOpacity
         onPress={onSelect}
@@ -45,10 +59,14 @@ export default class TrendingCell extends Component {
                 />
               ))}
             </View>
-            <Image
-              style={styles.image}
-              source={require('../../res/images/ic_unstar_navbar.png')}
-            />
+            <TouchableOpacity
+              onPress={() => this.onClickFavorite(data.id || data.fullName, data)}
+            >
+              <Image
+                style={[styles.image, {tintColor: '#2196F3'}]}
+                source={this.getFavoriteIcon(isFavorite)}
+              />
+            </TouchableOpacity>
           </View>
         </View>
       </TouchableOpacity>

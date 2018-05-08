@@ -3,7 +3,8 @@ import {
   View,
   RefreshControl,
   ListView,
-  StyleSheet
+  StyleSheet,
+  DeviceEventEmitter
 } from 'react-native';
 import ScrollableTabView, { ScrollableTabBar } from 'react-native-scrollable-tab-view';
 
@@ -29,6 +30,7 @@ export default class PopularPage extends Component {
   componentDidMount() {
     this.loadData();
   }
+
   loadData() {
     this.languageDao.fetch()
       .then(result => this.setState({tags: result}))
@@ -39,7 +41,7 @@ export default class PopularPage extends Component {
     return(
       <View style={styles.container}>
         <NavigationBar
-          title="最热"
+          title="Popular"
           style={{backgroundColor: '#6495ED'}}
         />
         {
@@ -70,6 +72,7 @@ class PopularTab extends Component {
   constructor(props) {
     super(props);
     this.dataRepository = new DataRepository(STORAGE.Popular);
+    this.isFavoriteChanged = false;
     this.state = {
       data: '',
       favoriteItem: {},
@@ -79,7 +82,20 @@ class PopularTab extends Component {
   }
   componentDidMount() {
     this.onLoad();
-    this.loadFavoriteKey()
+    this.listener = DeviceEventEmitter.addListener(STORAGE.Popular, () => {
+      this.isFavoriteChanged = true
+    })
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if(this.isFavoriteChanged) {
+      this.loadFavoriteKey();
+      this.isFavoriteChanged = false
+    }
+  }
+
+  componentWillUnmount() {
+    this.listener && this.listener.remove()
   }
 
   // 更新收藏状态
@@ -104,14 +120,12 @@ class PopularTab extends Component {
       isLoading: true
     });
     const url = this.getUrl();
-    const { dataSource } = this.state;
     this.dataRepository.fetchRepository(url)
       .then(data => {
         this.items = data && data.items ? data.items : (data || []);
         this.loadFavoriteKey();
         if (data && data.update_date && !this.dataRepository.checkDate(data.update_date)) {
           return this.dataRepository.fetchNetRepository(url)
-        } else {
         }
       })
       .then(items => {
@@ -132,28 +146,33 @@ class PopularTab extends Component {
       })
       .catch(() => this.flushFavoriteState({}))
   }
+
   getUrl() {
     return URL + this.props.tabLabel + QUERY_STR
   }
+
   onSelect(item) {
     this.props.navigator.push({
       component: RepositoryDetail,
       params: {
         item,
+        flag: STORAGE.Popular,
         ...this.props
       }
     });
   }
-  handleFavoriteItem = (id) => {
-    favoriteDao.updateFavoriteKeys(id, this.loadFavoriteKey);
+
+  handleFavoriteItem = (id, value) => {
+    favoriteDao.updateFavoriteKeys(id.toString(), value, this.loadFavoriteKey);
   }
+
   renderRow = (module) => {
     return(
       <RepositoryCell
         data={module.data}
         isFavorite={module.isFavorite}
         handleFavoriteItem={this.handleFavoriteItem}
-        onSelect={() => this.onSelect(module.data) }
+        onSelect={() => this.onSelect(module) }
       />
     )
   }

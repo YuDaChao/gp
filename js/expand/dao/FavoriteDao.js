@@ -31,7 +31,7 @@ export default class FavoriteDao {
    * 更新用户收藏的项目
    * @param itemId 收藏项目的id
    */
-  updateFavoriteKeys(itemId, callback) {
+  updateFavoriteKeys(itemId, itemValue, callback) {
     AsyncStorage.getItem(this.favoriteKey, (error, result) => {
       if(!error) {
         let favoriteKeyObj = {};
@@ -40,15 +40,30 @@ export default class FavoriteDao {
           if(favoriteKeyObj[itemId]) {
             delete favoriteKeyObj[itemId]
           } else {
-            favoriteKeyObj[itemId] = true
+            favoriteKeyObj[itemId] = itemValue
           }
         } else {
-          favoriteKeyObj[itemId] = true
+          favoriteKeyObj[itemId] = itemValue
         }
         AsyncStorage.setItem(this.favoriteKey, JSON.stringify(favoriteKeyObj), (error, result) => {
           callback && callback()
         })
       }
+    })
+  }
+
+  getFavorites() {
+    return new Promise((resolve, reject) => {
+      this.getFaoriteKeyObj()
+        .then(favorite => {
+          let favoriteItems = [];
+          if(favorite) {
+            Object.keys(favorite).forEach(f => {
+              favoriteItems.push(favorite[f])
+            })
+          }
+          resolve(favoriteItems)
+        })
     })
   }
 

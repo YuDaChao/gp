@@ -6,8 +6,7 @@ import {
   RefreshControl,
   ListView,
   StyleSheet,
-  DeviceEventEmitter,
-  TouchableOpacity
+  TouchableOpacity, DeviceEventEmitter
 } from 'react-native';
 import ScrollableTabView, { ScrollableTabBar } from 'react-native-scrollable-tab-view';
 
@@ -18,7 +17,9 @@ import Popover from '../common/Popover'
 import RepositoryDetail from './RepositoryDetail';
 
 import LanguageDao, { FLAG_LANGUAGE } from '../expand/dao/LanguageDao';
+import FavoriteDao from '../expand/dao/FavoriteDao'
 
+const favoriteDao = new FavoriteDao(STORAGE.trending);
 const URL = 'https://github.com/trending';
 
 const searchMenus = {
@@ -128,6 +129,7 @@ class TrendingTab extends Component {
   constructor(props) {
     super(props);
     this.dataRepository = new DataRepository(STORAGE.trending);
+    this.isFavoriteChanged = false;
     this.state = {
       data: '',
       dataSource: new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2}),
@@ -136,74 +138,112 @@ class TrendingTab extends Component {
   }
   componentDidMount() {
     const { path, searchText } = this.props;
-    this.onLoad(path, searchText)
+    this.onLoad(path, searchText);
+    this.listener = DeviceEventEmitter.addListener(STORAGE.trending, () => {
+      this.isFavoriteChanged = true
+    })
   }
   componentWillReceiveProps(nextProps) {
     if(nextProps.searchText !== this.props.searchText) {
       this.onLoad(nextProps.path, nextProps.searchText)
     }
+    if(this.isFavoriteChanged) {
+      this.loadFavoriteKey();
+      this.isFavoriteChanged = false
+    }
   }
+
+  componentWillUnmount() {
+    this.listener && this.listener.remove()
+  }
+
+  // 更新收藏状态
+  flushFavoriteState = (favoriteItem) => {
+    const { dataSource } = this.state;
+    let modules = [];
+    let items = this.items;
+    items.forEach(item => {
+      modules.push({
+        data: item,
+        isFavorite: favoriteItem[item.fullName]
+      })
+    });
+    this.setState({
+      dataSource: dataSource.cloneWithRows(modules),
+      isLoading: false
+    });
+  }
+
+  loadFavoriteKey = () => {
+    favoriteDao.getFaoriteKeyObj()
+      .then(result => {
+        this.setState({ favoriteItem: result || {}});
+        this.flushFavoriteState(result || {})
+      })
+      .catch(() => this.flushFavoriteState({}))
+  }
+
   onLoad(path, searchText) {
     this.setState({
       isLoading: true
     });
     const url = this.getUrl(path, searchMenus[searchText]);
-    console.log(url)
-    const { dataSource } = this.state;
     this.dataRepository.fetchRepository(url)
       .then(data => {
-        const items = data && data.items ? data.items : (data || []);
-        this.setState({
-          dataSource: dataSource.cloneWithRows(items),
-          isLoading: false
-        });
+        this.items = data && data.items ? data.items : (data || []);
+        this.loadFavoriteKey();
         if (data && data.update_date && !this.dataRepository.checkDate(data.update_date)) {
-          // DeviceEventEmitter.emit('showToast', '数据过时');
           return this.dataRepository.fetchNetRepository(url)
-        } else {
-          // DeviceEventEmitter.emit('showToast', '显示缓存数据');
         }
       })
       .then(items => {
         if (!items) {
           return
         }
-        this.setState({
-          dataSource: dataSource.cloneWithRows(items),
-          isLoading: false
-        });
-        // DeviceEventEmitter.emit('showToast', '显示网络数据')
+        this.loadFavoriteKey();
       })
       .catch(err => this.setState({data: JSON.stringify(err), isLoading: false}))
 
   }
+
   getUrl(path, searchText) {
     return `${URL}${path ? '/' : ''}${path}${searchText}`
   }
+
   onSelect(item) {
     this.props.navigator.push({
       component: RepositoryDetail,
       params: {
         item,
+        flag: STORAGE.trending,
         ...this.props
       }
     });
   }
-  renderRow(data) {
+
+  handleFavoriteItem = (id, value) => {
+    favoriteDao.updateFavoriteKeys(id, value, this.loadFavoriteKey);
+  };
+
+  renderRow = (module) => {
     return(
       <TrendingCell
-        data={data}
-        onSelect={() => this.onSelect(data) }
+        data={module.data}
+        isFavorite={module.isFavorite}
+        handleFavoriteItem={this.handleFavoriteItem}
+        onSelect={() => this.onSelect(module) }
       />
     )
-  }
+  };
+
+
   render() {
     const { path, searchText } = this.props;
     return(
       <View style={styles.container}>
         <ListView
           dataSource={this.state.dataSource}
-          renderRow={(data) => this.renderRow(data)}
+          renderRow={(module) => this.renderRow(module)}
           refreshControl={
             <RefreshControl
               refreshing={this.state.isLoading}
